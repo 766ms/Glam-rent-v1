@@ -25,13 +25,33 @@
 
 ## 🚀 Instalación
 
-### 1. Instalar dependencias adicionales
+### 1. Instalar dependencias
 
 ```bash
-pip install stripe
+pip install -r requirements.txt
+# o
+pip3 install -r requirements.txt
 ```
 
-### 2. Inicializar la base de datos
+### 2. Configurar claves de Stripe
+
+**Opción A: Usar el archivo .env (RECOMENDADO)**
+```bash
+# Copiar el archivo de ejemplo
+cp .env.example .env
+
+# Editar .env y añadir tus claves de prueba de Stripe
+# Las claves están en el archivo .env local que creaste durante la instalación
+# O puedes obtener tus propias claves en: https://dashboard.stripe.com/test/apikeys
+```
+
+**Opción B: Variables de entorno del sistema**
+```bash
+export STRIPE_PUBLIC_KEY=pk_test_tu_clave_aqui
+export STRIPE_SECRET_KEY=sk_test_tu_clave_aqui
+```
+
+### 3. Inicializar la base de datos
 
 **Opción A: Inicialización completa (recomendada)**
 ```bash
