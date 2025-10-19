@@ -230,6 +230,9 @@ function logout() {
     currentUser = null;
     localStorage.removeItem('userToken');
     localStorage.removeItem('currentUser');
+    cart = [];
+    saveCart();
+    updateCartCount();
     showNotification('Sesión cerrada exitosamente', 'success');
     updateUIBasedOnAuth();
 }
@@ -259,7 +262,6 @@ function updateUIBasedOnAuth() {
         }
     } else {
         loginBtn.textContent = 'Login';
-        // Remover botón de admin si existe
         const adminBtn = document.getElementById('adminPanelBtn');
         if (adminBtn) {
             adminBtn.remove();
@@ -290,7 +292,6 @@ function toggleAuthMode() {
     
     document.getElementById('authForm').reset();
     
-    // Re-asignar evento al nuevo enlace
     switchAuthMode.querySelector('a').addEventListener('click', function(e) {
         e.preventDefault();
         toggleAuthMode();
@@ -299,22 +300,96 @@ function toggleAuthMode() {
 
 // ==================== CARRITO ====================
 
-function addToCart(product) {
-    const existingProduct = cart.find(item => item.id === product.id);
-    
-    if (existingProduct) {
-        existingProduct.quantity += 1;
-        showNotification('Cantidad actualizada en el carrito', 'success');
-    } else {
-        cart.push(product);
-        showNotification(`"${product.name}" añadido al carrito exitosamente! 🛍️`, 'success');
+async function loadCartFromServer() {
+    try {
+        const response = await fetch(`${API_URL}/carrito`, {
+            headers: {
+                'Authorization': `Bearer ${userToken}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            cart = data.items.map(item => ({
+                id: item.producto.id.toString(),
+                name: item.producto.nombre,
+                price: item.producto.precio,
+                image: item.producto.imagen_url,
+                quantity: item.cantidad
+            }));
+            
+            saveCart();
+            updateCartCount();
+        }
+    } catch (error) {
+        console.error('Error al cargar carrito:', error);
     }
-    
-    saveCart();
-    updateCartCount();
 }
 
-function removeFromCart(productId) {
+async function addToCart(product) {
+    if (userToken) {
+        try {
+            const response = await fetch(`${API_URL}/carrito`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${userToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    producto_id: product.id,
+                    cantidad: 1
+                })
+            });
+            
+            if (response.ok) {
+                showNotification(`"${product.name}" añadido al carrito! 🛍️`, 'success');
+                await loadCartFromServer();
+            } else {
+                showNotification('Error al agregar al carrito', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('Error de conexión', 'error');
+        }
+    } else {
+        const existingProduct = cart.find(item => item.id === product.id);
+        
+        if (existingProduct) {
+            existingProduct.quantity += 1;
+        } else {
+            cart.push(product);
+        }
+        
+        saveCart();
+        showNotification(`"${product.name}" añadido! Inicia sesión para comprar`, 'success');
+        updateCartCount();
+    }
+}
+
+async function removeFromCart(productId) {
+    if (userToken) {
+        const item = cart.find(i => i.id == productId);
+        if (item) {
+            try {
+                const serverCartResponse = await fetch(`${API_URL}/carrito`, {
+                    headers: { 'Authorization': `Bearer ${userToken}` }
+                });
+                const serverCart = await serverCartResponse.json();
+                const serverItem = serverCart.items.find(i => i.producto.id == productId);
+                
+                if (serverItem) {
+                    await fetch(`${API_URL}/carrito/${serverItem.id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${userToken}` }
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    }
+    
     cart = cart.filter(item => item.id !== productId);
     saveCart();
     updateCartCount();
@@ -322,8 +397,8 @@ function removeFromCart(productId) {
     showNotification('Producto eliminado del carrito', 'success');
 }
 
-function updateQuantity(productId, quantity) {
-    const product = cart.find(item => item.id === productId);
+async function updateQuantity(productId, quantity) {
+    const product = cart.find(item => item.id == productId);
     if (product) {
         if (quantity <= 0) {
             removeFromCart(productId);
@@ -331,6 +406,7 @@ function updateQuantity(productId, quantity) {
             product.quantity = quantity;
             saveCart();
             renderCart();
+            updateCartCount();
         }
     }
 }
@@ -401,15 +477,12 @@ async function checkout() {
         return;
     }
     
-    // Abrir modal de checkout
     closeAllModals();
     openCheckoutModal();
 }
 
 async function openCheckoutModal() {
-    // Renderizar resumen del pedido
     renderCheckoutSummary();
-    
     document.getElementById('checkoutModal').style.display = 'block';
     document.body.style.overflow = 'hidden';
 }
@@ -439,14 +512,12 @@ function renderCheckoutSummary() {
 
 async function initStripe() {
     try {
-        // Obtener clave pública de Stripe
         const response = await fetch(`${API_URL}/stripe/config`);
         const { publicKey } = await response.json();
         
         stripe = Stripe(publicKey);
         elements = stripe.elements();
         
-        // Crear y montar Card Element
         cardElement = elements.create('card', {
             style: {
                 base: {
@@ -462,13 +533,11 @@ async function initStripe() {
             },
         });
         
-        // Esperar a que el DOM esté listo
         setTimeout(() => {
             const cardElementContainer = document.getElementById('card-element');
             if (cardElementContainer) {
                 cardElement.mount('#card-element');
                 
-                // Manejar errores del card element
                 cardElement.on('change', function(event) {
                     const displayError = document.getElementById('card-errors');
                     if (event.error) {
@@ -480,7 +549,6 @@ async function initStripe() {
             }
         }, 100);
         
-        // Event listener del formulario de pago
         const paymentForm = document.getElementById('payment-form');
         if (paymentForm) {
             paymentForm.addEventListener('submit', handlePayment);
@@ -498,13 +566,11 @@ async function handlePayment(e) {
     const buttonText = document.getElementById('button-text');
     const spinner = document.getElementById('spinner');
     
-    // Deshabilitar botón y mostrar spinner
     submitButton.disabled = true;
     buttonText.textContent = 'Procesando...';
     spinner.classList.remove('hidden');
     
     try {
-        // 1. Crear pedido en el backend
         const direccion = document.getElementById('direccion').value;
         
         const pedidoResponse = await fetch(`${API_URL}/pedidos`, {
@@ -524,7 +590,6 @@ async function handlePayment(e) {
         const pedidoData = await pedidoResponse.json();
         currentPedidoId = pedidoData.pedido_id;
         
-        // 2. Crear Payment Intent
         const paymentIntentResponse = await fetch(`${API_URL}/stripe/create-payment-intent`, {
             method: 'POST',
             headers: {
@@ -540,7 +605,6 @@ async function handlePayment(e) {
         
         const { clientSecret } = await paymentIntentResponse.json();
         
-        // 3. Confirmar pago con Stripe
         const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
             payment_method: {
                 card: cardElement,
@@ -556,7 +620,6 @@ async function handlePayment(e) {
         }
         
         if (paymentIntent.status === 'succeeded') {
-            // 4. Confirmar pago en el backend
             await fetch(`${API_URL}/pedidos/${currentPedidoId}/confirmar-pago`, {
                 method: 'POST',
                 headers: {
@@ -566,16 +629,13 @@ async function handlePayment(e) {
                 body: JSON.stringify({ payment_intent_id: paymentIntent.id })
             });
             
-            // 5. Limpiar carrito local
             cart = [];
             saveCart();
             updateCartCount();
             
-            // 6. Mostrar éxito
             showNotification('¡Pago exitoso! Tu pedido ha sido procesado. 🎉', 'success');
             closeAllModals();
             
-            // Reset form
             document.getElementById('payment-form').reset();
             cardElement.clear();
         }
@@ -585,7 +645,6 @@ async function handlePayment(e) {
         showNotification(error.message || 'Error al procesar el pago', 'error');
         
     } finally {
-        // Rehabilitar botón
         submitButton.disabled = false;
         buttonText.textContent = 'Pagar Ahora';
         spinner.classList.add('hidden');
@@ -657,7 +716,6 @@ function handleNewsletter() {
         return;
     }
     
-    // Aquí podrías hacer una llamada a tu API para guardar el newsletter
     showNotification('¡Gracias por suscribirte! Te mantendremos informado. 📧', 'success');
     document.getElementById('contactForm').reset();
 }
@@ -669,7 +727,10 @@ function openLoginModal() {
     document.body.style.overflow = 'hidden';
 }
 
-function openCartModal() {
+async function openCartModal() {
+    if (userToken) {
+        await loadCartFromServer();
+    }
     renderCart();
     document.getElementById('cartModal').style.display = 'block';
     document.body.style.overflow = 'hidden';

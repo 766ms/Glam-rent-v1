@@ -8,9 +8,6 @@ import datetime
 from functools import wraps
 import stripe
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
@@ -20,7 +17,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'imagenes'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_tu_clave_secreta_aqui')
+stripe.api_key = 'sk_test_51SK66nHRBYJxFtD5oxnQMGyoZ8GnJNm3dtX3rJmdEifjDOE4GIy1xKteVJwXtIx5RWaqlKG8fxYcKbYb9D9fAJSa00vNLS43XS'
 
 CORS(app)
 db = SQLAlchemy(app)
@@ -342,7 +339,7 @@ def obtener_pedidos_usuario(usuario_actual):
 
 @app.route('/api/stripe/config', methods=['GET'])
 def get_stripe_config():
-    return jsonify({'publicKey': os.environ.get('STRIPE_PUBLIC_KEY', 'pk_test_tu_clave_publica_aqui')})
+    return jsonify({'publicKey': 'pk_test_51SK66nHRBYJxFtD5khzWfFhqkIjOwzKsTs3PYNnyZaiM2n0LlRzxk5TtfO2CrR6zMsAEqI9PYIsZ4vmFeWcwjZJf00XJG4HYgf'})
 
 @app.route('/api/stripe/create-payment-intent', methods=['POST'])
 @token_requerido
@@ -358,6 +355,7 @@ def create_payment_intent(usuario_actual):
         intent = stripe.PaymentIntent.create(amount=int(pedido.total), currency='cop', metadata={'pedido_id': pedido.id, 'usuario_id': usuario_actual.id})
         return jsonify({'clientSecret': intent.client_secret, 'pedido_id': pedido.id}), 200
     except Exception as e:
+        print(f"ERROR STRIPE: {str(e)}")
         return jsonify({'mensaje': f'Error: {str(e)}'}), 500
 
 @app.route('/api/pedidos/<int:pedido_id>/confirmar-pago', methods=['POST'])
@@ -523,4 +521,5 @@ if __name__ == '__main__':
     print("🚀 Servidor iniciado en http://localhost:5000")
     print("📦 Base de datos: tienda_vestidos.db")
     print("✨ GLAM RENT - Backend activo")
+    print("💳 Stripe configurado y listo")
     app.run(debug=True, port=5000)
