@@ -6,10 +6,16 @@ let userToken = localStorage.getItem('userToken') || null;
 let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
+// Stripe
+let stripe;
+let elements;
+let cardElement;
+let currentPedidoId = null;
+
 // Variables de modales
 let isLoginMode = true;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Elementos del DOM
     const loginBtn = document.getElementById('loginBtn');
     const cartBtn = document.getElementById('cartBtn');
@@ -21,6 +27,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const authForm = document.getElementById('authForm');
     const switchAuthMode = document.getElementById('switchAuthMode');
     const contactForm = document.getElementById('contactForm');
+    
+    // Inicializar Stripe
+    await initStripe();
     
     // Actualizar UI basado en autenticación
     updateUIBasedOnAuth();
@@ -61,6 +70,8 @@ document.addEventListener('DOMContentLoaded', function() {
             closeAllModals();
         });
     });
+    
+    document.getElementById('closeCheckout')?.addEventListener('click', closeAllModals);
     
     window.addEventListener('click', function(e) {
         if (e.target.classList.contains('modal')) {
@@ -226,9 +237,33 @@ function logout() {
 function updateUIBasedOnAuth() {
     const loginBtn = document.getElementById('loginBtn');
     if (userToken && currentUser) {
-        loginBtn.textContent = `${currentUser.nombre} | Salir`;
+        let text = `${currentUser.nombre}`;
+        if (currentUser.es_admin) {
+            text += ' 👑';
+        }
+        text += ' | Salir';
+        loginBtn.textContent = text;
+        
+        // Si es admin, agregar botón para ir al panel
+        if (currentUser.es_admin && !document.getElementById('adminPanelBtn')) {
+            const adminBtn = document.createElement('a');
+            adminBtn.id = 'adminPanelBtn';
+            adminBtn.href = 'admin.html';
+            adminBtn.className = 'nav-link';
+            adminBtn.innerHTML = '<i class="fas fa-cog"></i> Panel Admin';
+            adminBtn.style.color = '#F0C5CE';
+            adminBtn.style.fontWeight = 'bold';
+            
+            const navMenu = document.querySelector('.nav-menu');
+            navMenu.insertBefore(adminBtn, loginBtn);
+        }
     } else {
         loginBtn.textContent = 'Login';
+        // Remover botón de admin si existe
+        const adminBtn = document.getElementById('adminPanelBtn');
+        if (adminBtn) {
+            adminBtn.remove();
+        }
     }
 }
 
@@ -353,7 +388,7 @@ function renderCart() {
     cartTotal.textContent = `$${total.toLocaleString()} COP`;
 }
 
-function checkout() {
+async function checkout() {
     if (cart.length === 0) {
         showNotification('Tu carrito está vacío', 'error');
         return;
@@ -366,8 +401,195 @@ function checkout() {
         return;
     }
     
-    showNotification('Funcionalidad de pago en desarrollo. ¡Gracias por tu interés! 💳', 'success');
+    // Abrir modal de checkout
     closeAllModals();
+    openCheckoutModal();
+}
+
+async function openCheckoutModal() {
+    // Renderizar resumen del pedido
+    renderCheckoutSummary();
+    
+    document.getElementById('checkoutModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function renderCheckoutSummary() {
+    const checkoutItems = document.getElementById('checkout-items');
+    const checkoutTotal = document.getElementById('checkout-total-amount');
+    
+    let total = 0;
+    let html = '';
+    
+    cart.forEach(item => {
+        const subtotal = item.price * item.quantity;
+        total += subtotal;
+        
+        html += `
+            <div class="checkout-item">
+                <span>${item.name} x ${item.quantity}</span>
+                <span>$${subtotal.toLocaleString()} COP</span>
+            </div>
+        `;
+    });
+    
+    checkoutItems.innerHTML = html;
+    checkoutTotal.textContent = `$${total.toLocaleString()} COP`;
+}
+
+async function initStripe() {
+    try {
+        // Obtener clave pública de Stripe
+        const response = await fetch(`${API_URL}/stripe/config`);
+        const { publicKey } = await response.json();
+        
+        stripe = Stripe(publicKey);
+        elements = stripe.elements();
+        
+        // Crear y montar Card Element
+        cardElement = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#333',
+                    '::placeholder': {
+                        color: '#aab7c4',
+                    },
+                },
+                invalid: {
+                    color: '#ff4757',
+                },
+            },
+        });
+        
+        // Esperar a que el DOM esté listo
+        setTimeout(() => {
+            const cardElementContainer = document.getElementById('card-element');
+            if (cardElementContainer) {
+                cardElement.mount('#card-element');
+                
+                // Manejar errores del card element
+                cardElement.on('change', function(event) {
+                    const displayError = document.getElementById('card-errors');
+                    if (event.error) {
+                        displayError.textContent = event.error.message;
+                    } else {
+                        displayError.textContent = '';
+                    }
+                });
+            }
+        }, 100);
+        
+        // Event listener del formulario de pago
+        const paymentForm = document.getElementById('payment-form');
+        if (paymentForm) {
+            paymentForm.addEventListener('submit', handlePayment);
+        }
+        
+    } catch (error) {
+        console.error('Error al inicializar Stripe:', error);
+    }
+}
+
+async function handlePayment(e) {
+    e.preventDefault();
+    
+    const submitButton = document.getElementById('submit-payment');
+    const buttonText = document.getElementById('button-text');
+    const spinner = document.getElementById('spinner');
+    
+    // Deshabilitar botón y mostrar spinner
+    submitButton.disabled = true;
+    buttonText.textContent = 'Procesando...';
+    spinner.classList.remove('hidden');
+    
+    try {
+        // 1. Crear pedido en el backend
+        const direccion = document.getElementById('direccion').value;
+        
+        const pedidoResponse = await fetch(`${API_URL}/pedidos`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${userToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ direccion_envio: direccion })
+        });
+        
+        if (!pedidoResponse.ok) {
+            const errorData = await pedidoResponse.json();
+            throw new Error(errorData.mensaje || 'Error al crear pedido');
+        }
+        
+        const pedidoData = await pedidoResponse.json();
+        currentPedidoId = pedidoData.pedido_id;
+        
+        // 2. Crear Payment Intent
+        const paymentIntentResponse = await fetch(`${API_URL}/stripe/create-payment-intent`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${userToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ pedido_id: currentPedidoId })
+        });
+        
+        if (!paymentIntentResponse.ok) {
+            throw new Error('Error al crear payment intent');
+        }
+        
+        const { clientSecret } = await paymentIntentResponse.json();
+        
+        // 3. Confirmar pago con Stripe
+        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+            payment_method: {
+                card: cardElement,
+                billing_details: {
+                    name: currentUser.nombre,
+                    email: currentUser.email,
+                },
+            },
+        });
+        
+        if (error) {
+            throw new Error(error.message);
+        }
+        
+        if (paymentIntent.status === 'succeeded') {
+            // 4. Confirmar pago en el backend
+            await fetch(`${API_URL}/pedidos/${currentPedidoId}/confirmar-pago`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${userToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ payment_intent_id: paymentIntent.id })
+            });
+            
+            // 5. Limpiar carrito local
+            cart = [];
+            saveCart();
+            updateCartCount();
+            
+            // 6. Mostrar éxito
+            showNotification('¡Pago exitoso! Tu pedido ha sido procesado. 🎉', 'success');
+            closeAllModals();
+            
+            // Reset form
+            document.getElementById('payment-form').reset();
+            cardElement.clear();
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification(error.message || 'Error al procesar el pago', 'error');
+        
+    } finally {
+        // Rehabilitar botón
+        submitButton.disabled = false;
+        buttonText.textContent = 'Pagar Ahora';
+        spinner.classList.add('hidden');
+    }
 }
 
 document.getElementById('checkoutBtn')?.addEventListener('click', checkout);

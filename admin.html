@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GLAM RENT - Panel de Administración</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="imagenes/logo.png" alt="GLAM RENT" class="logo">
+                <span class="brand-text">GLAM RENT ADMIN</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-link">Volver a Tienda</a>
+                <a href="#" class="nav-link" id="logoutBtn">Cerrar Sesión</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Dashboard -->
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-menu">
+                <button class="menu-item active" data-section="estadisticas">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Estadísticas</span>
+                </button>
+                <button class="menu-item" data-section="pedidos">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>Pedidos</span>
+                </button>
+                <button class="menu-item" data-section="productos">
+                    <i class="fas fa-tshirt"></i>
+                    <span>Productos</span>
+                </button>
+                <button class="menu-item" data-section="categorias">
+                    <i class="fas fa-tags"></i>
+                    <span>Categorías</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Sección Estadísticas -->
+            <section id="estadisticas-section" class="admin-section active">
+                <h1 class="admin-title">📊 Panel de Estadísticas</h1>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: #F0C5CE;">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="stat-pedidos-total">0</h3>
+                            <p>Total Pedidos</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: #FFD700;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="stat-pedidos-pendientes">0</h3>
+                            <p>Pedidos Pendientes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: #90EE90;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="stat-pedidos-pagados">0</h3>
+                            <p>Pedidos Pagados</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: #87CEEB;">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="stat-pedidos-despachados">0</h3>
+                            <p>Pedidos Despachados</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: #98D8C8;">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="stat-ventas-total">$0</h3>
+                            <p>Total Ventas</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color: #DDA0DD;">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="stat-productos-total">0</h3>
+                            <p>Total Productos</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección Pedidos -->
+            <section id="pedidos-section" class="admin-section">
+                <div class="section-header">
+                    <h1 class="admin-title">📦 Gestión de Pedidos</h1>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-estado="todos">Todos</button>
+                        <button class="filter-btn" data-estado="pendiente">Pendientes</button>
+                        <button class="filter-btn" data-estado="pagado">Pagados</button>
+                        <button class="filter-btn" data-estado="despachado">Despachados</button>
+                    </div>
+                </div>
+                
+                <div id="pedidos-container" class="pedidos-grid">
+                    <!-- Los pedidos se cargarán aquí dinámicamente -->
+                </div>
+            </section>
+
+            <!-- Sección Productos -->
+            <section id="productos-section" class="admin-section">
+                <div class="section-header">
+                    <h1 class="admin-title">👗 Gestión de Productos</h1>
+                    <button class="btn-primary" id="btnNuevoProducto">
+                        <i class="fas fa-plus"></i> Nuevo Producto
+                    </button>
+                </div>
+                
+                <div id="productos-container" class="productos-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Imagen</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productos-tbody">
+                            <!-- Los productos se cargarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Sección Categorías -->
+            <section id="categorias-section" class="admin-section">
+                <div class="section-header">
+                    <h1 class="admin-title">🏷️ Gestión de Categorías</h1>
+                    <button class="btn-primary" id="btnNuevaCategoria">
+                        <i class="fas fa-plus"></i> Nueva Categoría
+                    </button>
+                </div>
+                
+                <div id="categorias-container" class="categorias-grid">
+                    <!-- Las categorías se cargarán aquí -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal Detalle Pedido -->
+    <div id="pedidoModal" class="modal">
+        <div class="modal-content large-modal">
+            <span class="close">&times;</span>
+            <h2>Detalle del Pedido</h2>
+            <div id="pedido-detalle-container"></div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo/Editar Producto -->
+    <div id="productoModal" class="modal">
+        <div class="modal-content large-modal">
+            <span class="close">&times;</span>
+            <h2 id="productoModalTitle">Nuevo Producto</h2>
+            <form id="productoForm" class="admin-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="productoNombre">Nombre *</label>
+                        <input type="text" id="productoNombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="productoCategoria">Categoría *</label>
+                        <select id="productoCategoria" required>
+                            <option value="">Seleccionar categoría</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="productoPrecio">Precio (COP) *</label>
+                        <input type="number" id="productoPrecio" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="productoStock">Stock *</label>
+                        <input type="number" id="productoStock" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="productoTalla">Talla</label>
+                        <input type="text" id="productoTalla" placeholder="Ej: S/M/L">
+                    </div>
+                    <div class="form-group">
+                        <label for="productoColor">Color</label>
+                        <input type="text" id="productoColor" placeholder="Ej: Rosa">
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="productoDescripcion">Descripción</label>
+                    <textarea id="productoDescripcion" rows="3"></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label for="productoImagen">Imagen del Producto</label>
+                    <input type="file" id="productoImagen" accept="image/*">
+                    <small>O ingresa una URL de imagen existente:</small>
+                    <input type="text" id="productoImagenUrl" placeholder="imagenes/producto.png">
+                    <div id="imagen-preview" class="imagen-preview"></div>
+                </div>
+                <input type="hidden" id="productoId">
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="btnCancelarProducto">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Nueva Categoría -->
+    <div id="categoriaModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Nueva Categoría</h2>
+            <form id="categoriaForm" class="admin-form">
+                <div class="form-group">
+                    <label for="categoriaNombre">Nombre *</label>
+                    <input type="text" id="categoriaNombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="categoriaDescripcion">Descripción</label>
+                    <textarea id="categoriaDescripcion" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="btnCancelarCategoria">Cancelar</button>
+                    <button type="submit" class="btn-primary">Crear Categoría</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
