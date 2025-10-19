@@ -233,6 +233,48 @@
         </div>
     </div>
 
+    <!-- Modal de Checkout -->
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeCheckout">&times;</span>
+            <h2>PROCESAR PAGO</h2>
+            <div id="checkout-container">
+                <div class="checkout-summary">
+                    <h3>Resumen del Pedido</h3>
+                    <div id="checkout-items"></div>
+                    <div class="checkout-total">
+                        <strong>Total a Pagar:</strong> <span id="checkout-total-amount">$0 COP</span>
+                    </div>
+                </div>
+                
+                <form id="payment-form" class="payment-form">
+                    <div class="form-group">
+                        <label for="direccion">Dirección de Envío *</label>
+                        <textarea id="direccion" name="direccion" rows="3" required placeholder="Ingresa tu dirección completa"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Información de Pago</label>
+                        <div id="card-element" class="card-element">
+                            <!-- Stripe Card Element se montará aquí -->
+                        </div>
+                        <div id="card-errors" role="alert" class="card-errors"></div>
+                    </div>
+                    
+                    <button type="submit" class="login-btn" id="submit-payment">
+                        <span id="button-text">Pagar Ahora</span>
+                        <div class="spinner hidden" id="spinner"></div>
+                    </button>
+                    
+                    <p class="payment-test-info">
+                        <small><strong>Tarjeta de prueba:</strong> 4242 4242 4242 4242 | Cualquier fecha futura | Cualquier CVV</small>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://js.stripe.com/v3/"></script>
     <script src="script.js"></script>
 </body>
 </html>
