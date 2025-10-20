@@ -33,6 +33,15 @@ pip install -r requirements.txt
 ```
 
 ### 3️⃣ Crear admin y categorías
+Entrar en la subcarpeta
+```bash
+cd Glam-rent-v1 
+```
+Verificamos que estamos en el directorio correcto
+```bash
+dir
+```
+Colocar el siguiente comando para crear el admin
 ```bash
 python -c "from app import app, db, Usuario, Categoria; from werkzeug.security import generate_password_hash; app.app_context().push(); db.create_all(); admin = Usuario(nombre='Admin', email='admin@glamrent.com', password=generate_password_hash('admin123'), es_admin=True); db.session.add(admin); db.session.commit(); print('✅ Admin creado'); [db.session.add(Categoria(nombre=c)) for c in ['Vestidos de Fiesta', 'Vestidos de Noche', 'Vestidos Casuales', 'Vestidos de Graduación', 'Vestidos de Coctel']]; db.session.commit(); print('✅ Categorías creadas')"
 ```
