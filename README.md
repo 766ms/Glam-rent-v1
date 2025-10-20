@@ -28,8 +28,14 @@ cd Glam-rent-v1
 ```
 
 ### 2️⃣ Instalar dependencias
+opción 1
 ```bash
 pip install -r requirements.txt
+```
+opción 2
+```bash
+pip install Flask flask-cors flask-sqlalchemy PyJWT Werkzeug stripe python-dotenv
+
 ```
 
 ### 3️⃣ Crear admin y categorías
