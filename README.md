@@ -13,35 +13,124 @@ Sistema completo de comercio electrónico con panel de administración y pasarel
 - 📊 **Dashboard** - Estadísticas en tiempo real
 
 ## 🚀 Inicio Rápido
+# 🌟 GLAM RENT - Sistema de Alquiler de Vestidos
 
-### 1. Instalar Dependencias
+Sistema web completo para alquiler de vestidos con panel de administración, carrito de compras y pasarela de pagos Stripe.
+
+---
+
+## 🚀 Instalación
+
+### 1️⃣ Clonar el repositorio
 ```bash
-pip3 install -r requirements.txt
+git clone https://github.com/766ms/Glam-rent-v1.git
+cd Glam-rent-v1
 ```
 
-### 2. Configurar Stripe
+### 2️⃣ Instalar dependencias
 ```bash
-# Copia el archivo de ejemplo
-cp .env.example .env
-
-# Edita .env y añade tus claves de Stripe
-# Obtén claves de prueba en: https://dashboard.stripe.com/test/apikeys
+pip install -r requirements.txt
 ```
 
-El archivo `.env` ya está creado localmente con claves de prueba funcionales.
-
-### 3. Inicializar Base de Datos
+### 3️⃣ Crear admin y categorías
 ```bash
-python3 init_admin.py
-python3 seed_products.py
+python -c "from app import app, db, Usuario, Categoria; from werkzeug.security import generate_password_hash; app.app_context().push(); db.create_all(); admin = Usuario(nombre='Admin', email='admin@glamrent.com', password=generate_password_hash('admin123'), es_admin=True); db.session.add(admin); db.session.commit(); print('✅ Admin creado'); [db.session.add(Categoria(nombre=c)) for c in ['Vestidos de Fiesta', 'Vestidos de Noche', 'Vestidos Casuales', 'Vestidos de Graduación', 'Vestidos de Coctel']]; db.session.commit(); print('✅ Categorías creadas')"
 ```
 
-### 4. Iniciar Servidor
+### 4️⃣ Agregar productos de ejemplo
 ```bash
-./start_server.sh
-# o
-python3 app.py
+python seed_products.py
 ```
+
+### 5️⃣ Iniciar el servidor
+```bash
+python app.py
+```
+
+### 6️⃣ Abrir en el navegador
+```
+http://localhost:5000
+```
+
+---
+
+## 👤 Credenciales de Admin
+
+- **Email:** `admin@glamrent.com`
+- **Password:** `admin123`
+
+---
+
+## 🔧 Si necesitas reiniciar la base de datos
+
+### Windows:
+```bash
+del instance\tienda_vestidos.db
+```
+
+### Linux/Mac:
+```bash
+rm instance/tienda_vestidos.db
+```
+
+Luego vuelve a ejecutar desde el paso 3️⃣.
+
+---
+
+## 📦 Tecnologías
+
+- **Backend:** Flask (Python)
+- **Base de datos:** SQLite
+- **Pagos:** Stripe
+- **Frontend:** HTML5, CSS3, JavaScript
+
+---
+
+## ✨ Características
+
+✅ Sistema de registro y autenticación  
+✅ Carrito de compras persistente  
+✅ Pasarela de pagos con Stripe (tarjetas de prueba)  
+✅ Panel de administración completo  
+✅ Gestión de productos con imágenes  
+✅ Gestión de categorías  
+✅ Gestión de pedidos y estados  
+✅ Control de inventario/stock  
+
+---
+
+## 🎨 Panel de Admin
+
+Una vez logueado como admin, verás el botón **"Panel Admin 👑"** en el header.
+
+Desde el panel puedes:
+- Ver estadísticas de ventas
+- Gestionar pedidos (ver, cambiar estado, despachar)
+- Agregar/editar/eliminar productos
+- Subir imágenes de productos
+- Crear categorías
+- Controlar stock
+
+---
+
+## 💳 Tarjetas de Prueba Stripe
+
+Para probar pagos usa:
+- **Número:** `4242 4242 4242 4242`
+- **Fecha:** Cualquier fecha futura
+- **CVC:** Cualquier 3 dígitos
+- **ZIP:** Cualquier código postal
+
+---
+
+## 📞 Soporte
+
+Para problemas o preguntas, abre un issue en GitHub.
+
+---
+
+**Desarrollado por:** [Tu Nombre/Usuario]  
+**Año:** 2025
 
 ## 🔑 Credenciales
 
