@@ -1,4 +1,4 @@
-# 🌟 GLAM RENT - Alquiler de Vestidos de Gala
+# 🌟 GLAM RENT - Venta de Vestidos de Gala
 
 Sistema completo de comercio electrónico con panel de administración y pasarela de pagos.
 
@@ -24,7 +24,6 @@ Sistema web completo para alquiler de vestidos con panel de administración, car
 ### 1️⃣ Clonar el repositorio
 ```bash
 git clone https://github.com/766ms/Glam-rent-v1.git
-cd Glam-rent-v1
 ```
 
 ### 2️⃣ Instalar dependencias
@@ -35,6 +34,11 @@ pip install -r requirements.txt
 opción 2
 ```bash
 pip install Flask flask-cors flask-sqlalchemy PyJWT Werkzeug stripe python-dotenv
+
+```
+opción 3 (cmd)
+```bash
+python3 -m pip install Flask flask-cors flask-sqlalchemy PyJWT Werkzeug stripe python-dotenv
 
 ```
 
@@ -144,7 +148,7 @@ Para problemas o preguntas, abre un issue en GitHub.
 
 ---
 
-**Desarrollado por:** [Tu Nombre/Usuario]  
+**Desarrollado por:** [Sara]  
 **Año:** 2025
 
 ## 🔑 Credenciales
