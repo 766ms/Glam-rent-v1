@@ -184,18 +184,14 @@ Para problemas o preguntas, abre un issue en GitHub.
 
 ## 🔐 Seguridad
 
-- Las claves de Stripe están en variables de entorno (`.env`)
-- El archivo `.env` NO se sube a GitHub
 - Contraseñas hasheadas con bcrypt
 - Autenticación con JWT tokens
 
 ## 📝 Notas
 
-- Las claves de Stripe están en el archivo `.env` local
-- Para producción, usa tus propias claves de Stripe
-- Cambia la contraseña del admin después del primer uso
+- Las claves de Stripe están en el backend, debido a que así fue mucho más sencillo, pero si quieres usar tus propias claves de Stripe, solo debes cambiar la clave privada, y la publica.
 
 ---
 
-**Desarrollado por:** 766ms  
+**Desarrollado por:** Sara  
 **Licencia:** MIT
